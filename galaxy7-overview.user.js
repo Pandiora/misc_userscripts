@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.12
+// @version      0.13
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -21,6 +21,7 @@
 const config = {
     starting_galaxy: 7,
     starting_system: 51,
+    amount_sytems: 50,
     battleShipAmount: 1,
     typeColors: {
         1: '#00BFFF',
@@ -44,6 +45,7 @@ jQuery(document).ready(function(){
     // init bsu
     bsu.init(config);
     bsu.addButton();
+    bsu.onClicks();
 
 });
 
@@ -86,22 +88,7 @@ const bsu = (() => {
 
         jQuery('#munu_galaxy + a').attr("href", "#");
         jQuery(button).css('opacity', '1');
-        jQuery(button).on('click', async () => {
-            jQuery('#content').empty();
-            const datasets = await appendDatasets();
-            jQuery('#content').append(mainHtmlTemplate());
-            jQuery('#content').append(datasets);
-        });
-        jQuery(document).on('click', '#refresh-results', async () => {
-            galaData = []; jQuery('#wrapper').empty();
-            jQuery('.fa-spinner').toggle();
-            await getAllGalaDatasets(data.starting_galaxy, data.starting_system, 50);
-            jQuery('.fa-spinner').toggle();
-            const datasets = await appendDatasets();
-            jQuery('#wrapper').append(datasets);
-        });
-
-    };
+   };
 
     const fetchingData = async(url, p, type) => {
 
@@ -158,15 +145,84 @@ const bsu = (() => {
         return rows;
     };
 
+    const getUserConfig = async() => {
+
+        data.starting_system = await GM.getValue('systems', data.starting_system);
+        data.battleShipAmount = await GM.getValue('oneills', data.battleShipAmount);
+        data.typeDisplay = await GM.getValue('types', data.typeDisplay);
+
+    };
+
     const mainHtmlTemplate = () => {
 
-        const html = `<style type="text/css">@import "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css";.fa-spinner{display: none;}#wrapper{height: 100%; width: 100%; color: white;box-sizing: border-box;}#bsu-nav{width: 100%; padding: 10px;box-sizing: border-box;}#refresh-results{height: 25px; font-size: 16px; font-weight: bold; background-color: #46f946; border-radius: 4px; border: 1px solid black; color: black; cursor: pointer;}table{background-color: #000d20; float: left;width: auto !important;}td, th{background-color: #091d2e;}table, td, th{border: 1px solid black;}table tr:first-child th{font-size: 20px; padding: 5px;}table tr th, table tr td{padding: 2px 5px; text-align: left;}a[class^="bsu-"]{height: 20px; width: 20px; display: inline-block; background-repeat: no-repeat; background-position: center center;}.bsu-phalanx{background-image: url('https://static.battlestaruniverse.com/media/gamemedia/styles/images/iconav/radar.png');}.bsu-fleet{background-image: url('https://static.battlestaruniverse.com/media/gamemedia/styles/images/iconav/target.png');}.bsu-refresh{background-image: url('https://static.battlestaruniverse.com/media/gamemedia/styles/images/iconav/office.png');}</style><div id="bsu-nav"><button id="refresh-results"><i class="fa fa-spinner fa-spin"></i>Refresh Results</button></div><div id="wrapper"></div>`;
+        const html = `
+        <style type="text/css">
+@import"https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css";.fa-spinner{display:none}#wrapper{height:100%;width:100%;color:white}#bsu-nav{height:30px;padding:10px}button{height:27px;cursor:pointer;float:left;background-color:#006598;border:1px #00ccff solid;color:#FFF;border-radius:4px;margin:0 2px;font-size:16px;box-sizing:border-box;display:block}table{background-color:#000d20;float:left;width:auto !important}td,th{background-color:#091d2e}form{margin-right:20px}table,td,th{border:1px solid black}table tr:first-child th{padding:5px}table tr td,table tr th{padding:2px 5px;text-align:left}a[class^="bsu-"]{height:20px;width:20px;display:inline-block;background-repeat:no-repeat;background-position:center center}.bsu-phalanx{background-image:url('https://static.battlestaruniverse.com/media/gamemedia/styles/images/iconav/radar.png')}.bsu-fleet{background-image:url('https://static.battlestaruniverse.com/media/gamemedia/styles/images/iconav/target.png')}.bsu-refresh{background-image:url('https://static.battlestaruniverse.com/media/gamemedia/styles/images/iconav/office.png')}form #saveTypes,form #multiselect{float:right}#oneillAmount,#startingSystem,#multiselect{height:27px;font-size:16px;font-weight:bold;border-radius:4px;border:1px solid black;color:white;cursor:pointer;background-color:#091d2e;box-sizing:border-box}#oneillAmount + button,#startingSystem + button{float:right}.selectBox{height:100%;position:relative;background-color:#091d2e}.selectBox select{width:100%;height:100%;font-weight:bold;background-color:#091d2e;color:white}.overSelect{position:absolute;left:0;right:0;top:0;bottom:0}#checkboxes{display:none;border:1px #dadada solid;background-color:#091d2e;z-index:1;position:relative;color:white}#checkboxes label{display:block}#checkboxes label:hover{background-color:#1e90ff}#system{width:195px;float:right}#oneill{width:270px;float:right}
+        </style>
+<div id="bsu-nav"> <button id="refresh-results"><i class="fa fa-spinner fa-spin"></i>Refresh Results</button><form> <button id="saveTypes">Save Types</button><div id="multiselect"><div class="selectBox"> <select><option>Select Types</option></select><div class="overSelect"></div></div><div id="checkboxes"> <label for="11"><input type="checkbox" id="11" />Type 1</label> <label for="22"><input type="checkbox" id="22" />Type 2</label> <label for="33"><input type="checkbox" id="33" />Type 3</label> <label for="44"><input type="checkbox" id="44" />Type 4</label> <label for="55"><input type="checkbox" id="55" />Type 5</label> <label for="66"><input type="checkbox" id="66" />Type 6</label> <label for="77"><input type="checkbox" id="77" />Type 7</label> <label for="88"><input type="checkbox" id="88" />Type 8</label> <label for="99"><input type="checkbox" id="99" />Type 9</label></div></div></form><form id="system"> <input id="startingSystem" type="number" step="50" min="1" max="3001"> <button id="saveSystem">Save System</button></form><form id="oneill"> <input id="oneillAmount" type="number" step="1" min="1" max="1000000000000"> <button id="saveOneill">Save Oneill</button></form></div><div id="wrapper"></div>
+        `;
         return html;
+    };
+
+    const onClicks = (targetid) => {
+
+        jQuery(document).on('click', async(e) => {
+            const targetId = e.target.id;
+            const targetClass = e.target.className;
+
+            switch (true) {
+                case /refresh-results/.test(targetId):
+                    e.preventDefault();
+                    galaData = [];
+                    jQuery('.fa-spinner').toggle();
+                    await getAllGalaDatasets(data.starting_galaxy, data.starting_system, data.amount_sytems);
+                    await reloadContent();
+                    jQuery('.fa-spinner').toggle();
+                    break;
+                case /overSelect/.test(targetClass):
+                    e.preventDefault();
+                    jQuery('#checkboxes').toggle('visibility');
+                    break;
+                case /saveTypes/.test(targetId):
+                    e.preventDefault();
+                    const inputTypes = $('#checkboxes input:checked', document).map(function(){ return this.id[0]; }).get();
+                    if(inputTypes.length < 1) return;
+                    await GM.setValue('types', inputTypes);
+                    await reloadContent();
+                    break;
+                case /saveOneill/.test(targetId):
+                    e.preventDefault();
+                    const inputOneills = $('#oneillAmount', document).val();
+                    if(inputOneills.length < 1) return;
+                    await GM.setValue('oneills', inputOneills);
+                    break;
+                case /saveSystem/.test(targetId):
+                    e.preventDefault();
+                    const inputSystem = $('#startingSystem', document).val();
+                    if(inputSystem.length < 1) return;
+                    await GM.setValue('systems', inputSystem);
+                    break;
+                case /imgovernuovo/.test(targetClass):
+                    e.preventDefault();
+                    jQuery('#content').empty().append(mainHtmlTemplate());
+                    await reloadContent();
+                    break;
+                default:
+                    return true;
+                    break;
+            }
+        });
     };
 
     const updateSingleEntry = (coords) => {
 
 
+    };
+
+    const reloadContent = async () => {
+        await getUserConfig();
+        const dataSets = await appendDatasets();
+        jQuery('#wrapper', document).empty().append(dataSets);
     };
 
     const sendFleet = (coords) => {
@@ -185,6 +241,7 @@ const bsu = (() => {
     return {
         updateSingleEntry,
         addButton,
+        onClicks,
         init,
     };
 })();
