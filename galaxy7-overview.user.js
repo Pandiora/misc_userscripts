@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.13
+// @version      0.14
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -21,7 +21,7 @@
 const config = {
     starting_galaxy: 7,
     starting_system: 51,
-    amount_sytems: 50,
+    amount_systems: 50,
     battleShipAmount: 1,
     typeColors: {
         1: '#00BFFF',
@@ -153,6 +153,16 @@ const bsu = (() => {
 
     };
 
+    const setUserConfig = async() => {
+
+        $('#startingSystem', document).val(data.starting_system);
+        $('#oneillAmount', document).val(data.battleShipAmount);
+        const len = data.typeDisplay.length;
+        for(let i=0;i<len;i++){
+            $('#'+data.typeDisplay[i].repeat(2), document).prop('checked', true);
+        }
+    };
+
     const mainHtmlTemplate = () => {
 
         const html = `
@@ -175,7 +185,7 @@ const bsu = (() => {
                     e.preventDefault();
                     galaData = [];
                     jQuery('.fa-spinner').toggle();
-                    await getAllGalaDatasets(data.starting_galaxy, data.starting_system, data.amount_sytems);
+                    await getAllGalaDatasets(data.starting_galaxy, data.starting_system, data.amount_systems);
                     await reloadContent();
                     jQuery('.fa-spinner').toggle();
                     break;
@@ -223,6 +233,7 @@ const bsu = (() => {
         await getUserConfig();
         const dataSets = await appendDatasets();
         jQuery('#wrapper', document).empty().append(dataSets);
+        setUserConfig();
     };
 
     const sendFleet = (coords) => {
