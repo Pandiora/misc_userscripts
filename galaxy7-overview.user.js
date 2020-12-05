@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.11
+// @version      0.12
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -68,7 +68,7 @@ const bsu = (() => {
         for(let i=0;i<typeLen;i++){
             const obj = (galaDatasets || []).filter(x => x.type == data.typeDisplay[i]);
             if(obj.length < 1) continue;
-            let pre = `<table><tr><th colspan="4" style="color: ${data.typeColors[data.typeDisplay[i]]};">Type ${data.typeDisplay[i]}</th></tr><tr><th>Position</th><th>Ally</th><th>Occupied</th><th>Actions</th></tr>`;
+            let pre = `<table><tr><th colspan="4" style="color: ${data.typeColors[data.typeDisplay[i]]};">Type ${data.typeDisplay[i]} (${obj.length})</th></tr><tr><th>Position</th><th>Ally</th><th>Occupied</th><th>Actions</th></tr>`;
 
             for(let j=0;j<obj.length;j++){
                 let occupied = (obj[j].occ == "Yes" || obj[j].ally) ? "Yes" : "No";
