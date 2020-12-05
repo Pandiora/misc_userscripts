@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         [Ninja] Remove RDP for RDS
-// @namespace    https://pace-it.de/
-// @include      https://pace-it.de/*
+// @namespace    *
+// @include      *
 // @version      0.1
 // @description  Remove RDP-Icon to avoid switching RDP security settings on logon
 // @author       Pandi
-// @match        https://paceit.rmmservice.eu/
-// @match        https://paceit.rmmservice.eu/
+// @match        https://*.rmmservice.eu/
+// @match        https://*.rmmservice.eu/
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/ninja_remove_rdp_for_rds.user.js
 // @downloadURL  https://github.com/Pandiora/misc_userscripts/raw/master/ninja_remove_rdp_for_rds.user.js
 // @grant        none
