@@ -4,6 +4,8 @@
 // @version      0.1
 // @description  Galaxy 7 - Overview
 // @author       Pandi
+// @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
+// @downloadURL  https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
 // @match        *://universe1.battlestaruniverse.com/*
 // @match        *://battlestaruniverse.com/*
 // @grant        GM_setValue
