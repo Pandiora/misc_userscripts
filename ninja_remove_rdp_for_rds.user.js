@@ -23,10 +23,7 @@ ToDo:
 
 // Search for hostnames which are part of this list
 const hostlist = [
-    'DOTRZSV-RDS01',
-    'DOTRZSV-RDSH01',
-    'DOTRZSV-RDSH02',
-    'DOTRZSV-RDSH03',
+
 ];
 
 /*
