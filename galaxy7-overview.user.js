@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.20
+// @version      0.22
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -185,11 +185,11 @@ const bsu = (() => {
 
     const setUserConfig = async() => {
 
-        $('#startingSystem', document).val(data.starting_system);
-        $('#oneillAmount', document).val(data.battleShipAmount);
+        jQuery('#startingSystem', document).val(data.starting_system);
+        jQuery('#oneillAmount', document).val(data.battleShipAmount);
         const len = data.typeDisplay.length;
         for(let i=0;i<len;i++){
-            $('#'+data.typeDisplay[i].repeat(2), document).prop('checked', true);
+            if(jQuery('#'+data.typeDisplay[i].repeat(2), document)) jQuery('#'+data.typeDisplay[i].repeat(2), document).prop('checked', true);
         }
     };
 
@@ -268,10 +268,10 @@ const bsu = (() => {
     };
 
     const sendFleet = async(gal,sys,pos,type) => {
-
+        //console.log('['+gal+':'+sys+':'+pos+']-'+type);
         let fetchData = [
-            { 'galaxy': gal, 'system': sys, 'planet': pos, 'type': type, 'target_mission': 25, 'ship221': data.battleShipAmount, 'save_groop': '' },
-            { 'galaxy': gal, 'system': sys, 'planet': pos, 'type': type, 'token': '', 'fleet_group': 0, 'target_mission': 25, 'TIMING': '5.568415100487793', 'speed': 10 },
+            { 'galaxy': gal, 'system': sys, 'planet': pos, 'type': 1, 'target_mission': 25, 'ship221': data.battleShipAmount, 'save_groop': '' },
+            { 'galaxy': gal, 'system': sys, 'planet': pos, 'type': 1, 'token': '', 'fleet_group': 0, 'target_mission': 25, 'TIMING': '5.568415100487793', 'speed': 10 },
             { 'token': '', 'groupAttackMOD': 0, 'mission': 25, 'metal': 0, 'crystal': 0, 'deuterium': 0, 'staytime': 0 }
         ];
 
