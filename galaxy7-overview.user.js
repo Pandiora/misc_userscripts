@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.31
+// @version      0.33
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -72,6 +72,7 @@ const bsu = (() => {
 
         if(typeof galaxyData === 'undefined'){
             await setReportTime(userData);
+            lok('Retrieving data for G7. Please wait!', 'success');
             await getAllGalaDatasets(userData.startGalaxy, userData.startSystem, userData.amountSystems);
             await reloadContent();
             return;
@@ -303,7 +304,10 @@ const bsu = (() => {
                 let userData = await GM.getValue('userData');
                     userData = await getStartSystem(userData);
                 await setReportTime(userData);
+                lok('Retrieving data for G7. Please wait!', 'success');
+                jQuery('.fa-spinner').toggle();
                 await getAllGalaDatasets(userData.startGalaxy, userData.startSystem, userData.amountSystems);
+                jQuery('.fa-spinner').toggle();
                 await reloadContent();
             }
 
@@ -360,6 +364,7 @@ const bsu = (() => {
     const sendFleet = async(gal,sys,pos,type) => {
 
         const userData = await GM.getValue('userData');
+        lok(`Sending capturing fleet out of ${userData.battleShipAmount} Oneill. Please wait!`, 'success');
 
         let fetchData = [
             { 'galaxy': gal, 'system': sys, 'planet': pos, 'type': 1, 'target_mission': 25, 'ship221': userData.battleShipAmount, 'save_groop': '' },
