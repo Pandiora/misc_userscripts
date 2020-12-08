@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.25
+// @version      0.26
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -41,6 +41,7 @@ const config = {
 /*
 Implement nice logging and error modals (use system ones)
 Find out when the next scan is needed
+Detect starting system on manual (full) update too
 */
 
 // C O D E
@@ -94,7 +95,9 @@ const bsu = (() => {
             for(let j=0;j<arr.length;j++){
 
                 const obj = galaxyData[arr[j]],
-                      occupied = getOwner(obj,captureData,isThisYou);
+                      occupied = getOwner(obj,captureData,isThisYou),
+                      isInFlight = (["Own","Yes","No"].indexOf(occupied) !== -1) ? 'inline-block' : 'none',
+                      directSend = [obj.gal, obj.sys, obj.pos, userData.typeDisplay[i]];
 
                 pre += rowTemplate([
                     userData.baseUrl,
@@ -103,12 +106,8 @@ const bsu = (() => {
                     obj.pos,
                     obj.ally,
                     occupied,
-                    [
-                        obj.gal,
-                        obj.sys,
-                        obj.pos,
-                        userData.typeDisplay[i]
-                    ]
+                    directSend,
+                    isInFlight
                 ]);
             }
 
@@ -366,26 +365,9 @@ const bsu = (() => {
     }
 
     return {
-        addButton,
-        onClicks,
         init,
     };
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -438,9 +420,9 @@ return `
   <td>
     <a href="#" onclick="OpenPopup('${data[0]}game.php?page=phalanx&galaxy=${data[1]}&system=${data[2]}&planet=${data[3]}&planettype=1', '', 640, 510);" class="bsu-phalanx" title="Phalanx">
     </a>
-    <a href="${data[0]}game.php?page=fleetTable&galaxy=${data[1]}&system=${data[2]}&planet=${data[3]}&planettype=1&target_mission=25" target="_blank" class="bsu-fleet" title="Send Fleet">
+    <a href="${data[0]}game.php?page=fleetTable&galaxy=${data[1]}&system=${data[2]}&planet=${data[3]}&planettype=1&target_mission=25" target="_blank" class="bsu-fleet" title="Send Fleet" style="display: ${data[7]};">
     </a>
-    <a href="#" class="bsu-direct-fleet" title="Send capturing fleet with one click" data-fleet="${data[6]}">
+    <a href="#" class="bsu-direct-fleet" title="Send capturing fleet with one click" data-fleet="${data[6]}" style="display: ${data[7]};">
     </a>
     <a href="#" class="bsu-refresh" title="Refresh this dataset">
     </a>
