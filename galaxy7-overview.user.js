@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.26
+// @version      0.30
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -38,12 +38,6 @@ const config = {
     baseUrl: 'https://universe1.battlestaruniverse.com/',
 };
 
-/*
-Implement nice logging and error modals (use system ones)
-Find out when the next scan is needed
-Detect starting system on manual (full) update too
-*/
-
 // C O D E
 ////////////////////////////////////////////////////////////////////////////////////////
 jQuery(document).ready(function(){
@@ -59,14 +53,8 @@ const bsu = (() => {
 
     const init = async(config) => {
 
-        const userData = await GM.getValue('userData');
-
-        if(typeof userData === 'undefined'){
-            let system = await fetchingData(config.baseUrl+'game.php?page=galaxy&galaxy=7&system=1', [], 'GET');
-            config.startSystem = parseInt(jQuery('.gal_p3:eq(1)', system).val());
-
-            await GM.setValue('userData', config);
-        }
+        let userData = await GM.getValue('userData');
+            userData = userData || await getStartSystem(config);
 
         addButton();
         onClicks();
@@ -83,6 +71,7 @@ const bsu = (() => {
         let dataTables = "";
 
         if(typeof galaxyData === 'undefined'){
+            await setReportTime(userData);
             await getAllGalaDatasets(userData.startGalaxy, userData.startSystem, userData.amountSystems);
             await reloadContent();
             return;
@@ -119,6 +108,8 @@ const bsu = (() => {
             ]);
         }
 
+        const re = getReportTime(userData);
+        lok(re[0],re[1]);
         return dataTables;
     };
 
@@ -130,7 +121,7 @@ const bsu = (() => {
         if(occupied == "Yes"){
 
             for(let k=0;k<ity.length;k++){
-                if(cd[0][k] === compare) occupied = "Own";
+                if(ity[k] === compare) occupied = "Own";
             }
 
         } else if(occupied == "No"){
@@ -157,6 +148,15 @@ const bsu = (() => {
         jQuery('#munu_galaxy + a .imgovernuovo').css('opacity', '1');
     };
 
+    const getStartSystem = async(config) => {
+
+        const system = await fetchingData(config.baseUrl+'game.php?page=galaxy&galaxy=7&system=1', [], 'GET');
+        config.startSystem = parseInt(jQuery('.gal_p3:eq(1)', system).val());
+        await GM.setValue('userData', config);
+
+        return config;
+    };
+
     const fetchingData = async(url, p, type) => {
 
         let sendObj = {
@@ -178,7 +178,7 @@ const bsu = (() => {
     const getAllGalaDatasets = async(gal,sys,amount,userd,gd) => {
 
         const userData = userd || await GM.getValue('userData'),
-              galaxyData  = gd || await GM.getValue('galaData', []),
+              galaxyData  = gd || [],
               results = await getGalaDataset(gal,sys,userData);
 
         galaxyData.push.apply(galaxyData,results);
@@ -224,6 +224,20 @@ const bsu = (() => {
               timebase = jQuery(vDoc).find('.holding.ownseizure').parent().prev().children('.fleets').map(function(e){ return this; }).get();
         return [fleets,timebase];
 
+    };
+
+    const getPhalanxData = async(e) => {
+
+        if(jQuery('.showPhalanx', e.target).is(':visible') || jQuery('#ally_content', e.target).length) return jQuery('.showPhalanx', e.target).toggle('visibility');
+
+        const posData = jQuery(e.target).data('phalanx').split(','),
+              userData = await GM.getValue('userData');
+
+        let phalaData = await fetchingData(`${userData.baseUrl}game.php?page=phalanx&galaxy=${posData[0]}&system=${posData[1]}&planet=${posData[2]}&planettype=1`, [], 'GET');
+        phalaData = jQuery('#ally_content', phalaData)[0];
+
+        jQuery('.showPhalanx', e.target).empty().html(phalaData);
+        jQuery('.showPhalanx', e.target).css('display', 'block');
     };
 
     const getSinglePlanet = async(gal,sys,pla) => {
@@ -277,6 +291,7 @@ const bsu = (() => {
             '.overSelect',
             '.bsu-direct-fleet',
             '.bsu-refresh',
+            '.bsu-phalanx',
         ];
 
         jQuery(document).on('click', clickedElements, async(e) => {
@@ -285,7 +300,9 @@ const bsu = (() => {
                   eleIndex = clickedElements.indexOf(comparison);
 
             if(eleIndex === 0){
-                const userData = await GM.getValue('userData');
+                let userData = await GM.getValue('userData');
+                    userData = await getStartSystem(userData);
+                await setReportTime(userData);
                 await getAllGalaDatasets(userData.startGalaxy, userData.startSystem, userData.amountSystems);
                 await reloadContent();
             }
@@ -318,6 +335,15 @@ const bsu = (() => {
                 await reloadContent();
             }
 
+            if(eleIndex === 7){
+                await getPhalanxData(e);
+            }
+
+            if([0,1,2,3,4,5,6,7].indexOf(eleIndex) < 0){
+                if(jQuery('.showPhalanx').is(':visible')) jQuery('.showPhalanx').css('display', 'none');
+                if(jQuery('#checkboxes').is(':visible')) jQuery('#checkboxes').css('display', 'none');
+            }
+
         });
     };
 
@@ -348,8 +374,40 @@ const bsu = (() => {
         await fetchingData(userData.baseUrl+'game.php?page=fleetStep2', fetchData[1], 'POST');
         await fetchingData(userData.baseUrl+'game.php?page=fleetStep3', fetchData[2], 'POST').then(res => {
             const txt = jQuery(res).find('.ally_contents').text();
-            console.log('If this result is empty, your fleet got send: '+txt);
+            lok(((txt.length)?txt:'Fleet send succesfully'),((txt.length)?'error':'success'));
         });
+    };
+
+    const setReportTime = async(userData) => {
+
+        userData.reportTime = Date.parse(new Date());
+        await GM.setValue('userData', userData);
+
+    };
+
+    const getReportTime = (userData) => {
+
+        const reportTime = userData.reportTime || Date.parse(new Date()),
+              nextSunday = getNextSunday();
+        let reportText = '';
+
+        if(reportTime > nextSunday) return ['Your report is outdated, please update.','error'];
+        return ['This report vill be valid for '+parseInt((nextSunday-reportTime)/(60*60*1000))+' hours.','success'];
+    };
+
+    const getNextSunday = () => {
+
+        let date = new Date();
+
+        date.setDate(date.getDate() + (6 + 7 - date.getDay()) % 7);
+        date.setHours(17,0,0,0).toLocaleString("de-DE", {timeZone: "Europe/Berlin"});
+
+        return Date.parse(date);
+    };
+
+    const lok = (txt, type) => {
+        // type - error, success, ...
+        alertify.log(txt,type)
     };
 
     const randu = (min, max) => {
@@ -366,6 +424,7 @@ const bsu = (() => {
 
     return {
         init,
+        getPhalanxData,
     };
 })();
 
@@ -418,8 +477,7 @@ return `
   <td>${data[5]}
   </td>
   <td>
-    <a href="#" onclick="OpenPopup('${data[0]}game.php?page=phalanx&galaxy=${data[1]}&system=${data[2]}&planet=${data[3]}&planettype=1', '', 640, 510);" class="bsu-phalanx" title="Phalanx">
-    </a>
+    <a href="#" class="bsu-phalanx" title="Phalanx" data-phalanx="${data[1]},${data[2]},${data[3]}"><div class="showPhalanx" style="display: none;"></div></a>
     <a href="${data[0]}game.php?page=fleetTable&galaxy=${data[1]}&system=${data[2]}&planet=${data[3]}&planettype=1&target_mission=25" target="_blank" class="bsu-fleet" title="Send Fleet" style="display: ${data[7]};">
     </a>
     <a href="#" class="bsu-direct-fleet" title="Send capturing fleet with one click" data-fleet="${data[6]}" style="display: ${data[7]};">
@@ -595,6 +653,19 @@ line-height: 21px !important;
 background-position-x: left !important;
 width: 45px !important;
 }
+
+.showPhalanx {
+  height: 50px;
+  width: auto;
+  margin: -14px 0 0 20px;
+  position: absolute;
+  background-color: #000d20;
+  border: 1px solid #091d2e;
+}
+.bsu-phalanx:hover {
+  filter: none !important;
+}
+
 </style>
 <div id="bsu-nav">
 <button id="refresh-results" title="Update all results (will take some time)"><i class="fa fa-spinner fa-spin"></i>Update</button>
