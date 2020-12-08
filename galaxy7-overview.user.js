@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Galaxy 7 - Overview
 // @namespace    http://tampermonkey.net/
-// @version      0.30
+// @version      0.31
 // @description  Galaxy 7 - Overview
 // @author       Pandi
 // @updateURL    https://github.com/Pandiora/misc_userscripts/raw/master/galaxy7-overview.user.js
@@ -392,7 +392,7 @@ const bsu = (() => {
         let reportText = '';
 
         if(reportTime > nextSunday) return ['Your report is outdated, please update.','error'];
-        return ['This report vill be valid for '+parseInt((nextSunday-reportTime)/(60*60*1000))+' hours.','success'];
+        return ['This report will be valid for '+parseInt((nextSunday-reportTime)/(60*60*1000))+' hours.','success'];
     };
 
     const getNextSunday = () => {
@@ -424,7 +424,6 @@ const bsu = (() => {
 
     return {
         init,
-        getPhalanxData,
     };
 })();
 
